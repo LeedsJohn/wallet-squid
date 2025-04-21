@@ -1,6 +1,11 @@
 open! Core
 
-type t = string [@@deriving sexp_of]
+module T = struct
+  type t = string [@@deriving compare, sexp_of]
+end
+
+include T
+include Comparator.Make (T)
 
 let of_string s =
   if
