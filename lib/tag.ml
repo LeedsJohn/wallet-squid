@@ -1,7 +1,7 @@
 open! Core
 
 module T = struct
-  type t = string [@@deriving compare, sexp_of]
+  type t = string [@@deriving compare, equal, sexp]
 end
 
 include T

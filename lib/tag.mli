@@ -2,7 +2,7 @@ open! Core
 
 (** A tag.t can only contain lowercase letters, digits, dashes, and underscores. It must
     be between 1 and 64 characters. *)
-type t [@@deriving compare, sexp_of]
+type t [@@deriving compare, equal, sexp]
 
 include Comparator.S with type t := t
 
