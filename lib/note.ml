@@ -15,26 +15,30 @@ end
 
 include Note
 
-let get_tags line =
+let get_tags text =
   let%bind.Or_error tags =
-    String.split line ~on:','
+    String.split_lines text
+    |> List.hd
+    |> Option.value ~default:""
+    |> String.split ~on:','
     |> List.map ~f:String.strip
+    |> List.filter ~f:(fun s -> String.length s > 0)
     |> List.map ~f:Tag.of_string
     |> Or_error.all
   in
   Ok (Set.of_list (module Tag) tags)
 ;;
 
-(* name must initially be prefixed base_path *)
-let load_note ~base_path name =
-  let%bind.Or_error tags =
-    In_channel.read_lines name
-    |> List.hd
-    |> Option.value ~default:""
-    |> get_tags
-    |> Or_error.tag_s ~tag:[%message "" ~path:(name : string)]
+let make_all notes =
+  let%bind.Or_error note_list =
+    List.map notes ~f:(fun (filename, content) ->
+      let%bind.Or_error tags =
+        get_tags content |> Or_error.tag_s ~tag:[%message "" ~name:(filename : string)]
+      in
+      Ok { name = filename; tags })
+    |> Or_error.all
   in
-  Ok { name = String.chop_prefix_exn name ~prefix:(base_path ^ "/"); tags }
+  Ok (Set.of_list (module Note) note_list)
 ;;
 
 let ls_recursive ~base_path =
@@ -60,13 +64,16 @@ let ls_recursive ~base_path =
   aux [] base_path
 ;;
 
-(* tests in test/test_note.ml (because they depend on filesystem). This should
-   potentially be restructured so that is not necessary. *)
 let load ~base_path =
-  let%bind.Or_error notes =
-    ls_recursive ~base_path |> List.map ~f:(load_note ~base_path) |> Or_error.all
-  in
-  Ok (Set.of_list (module Note) notes)
+  ls_recursive ~base_path
+  |> List.map ~f:(fun file_path ->
+    let fname =
+      String.chop_prefix_exn file_path ~prefix:(base_path ^ "/")
+      |> String.chop_suffix_exn ~suffix:".md"
+    in
+    let content = In_channel.read_all file_path in
+    fname, content)
+  |> make_all
 ;;
 
 let%expect_test "get_tags" =
@@ -80,5 +87,43 @@ let%expect_test "get_tags" =
     (Error
      ("tag must only contain lowercase letters, digits, dashes, and underscores"
       (tag CAPITAL)))
+    |}]
+;;
+
+let%expect_test "load" =
+  let good_notes =
+    [ ( "file1"
+      , {|tag1, tag2
+
+    this is some text for the note|}
+      )
+    ; "subdir/file2", "tag1, a"
+    ; ( "file3"
+      , {|
+
+    note text|}
+      )
+    ]
+  in
+  print_s [%sexp (make_all good_notes : Set.M(Note).t Or_error.t)];
+  [%expect
+    {|
+    (Ok
+     (((name file1) (tags (tag1 tag2))) ((name file3) (tags ()))
+      ((name subdir/file2) (tags (a tag1)))))
+    |}];
+  let bad_notes =
+    [ "file1", "InvalidTag"; "file2", "good_tag"; "file3", "anotherBadTag" ]
+  in
+  print_s [%sexp (make_all bad_notes : Set.M(Note).t Or_error.t)];
+  [%expect
+    {|
+    (Error
+     (((name file1)
+       ("tag must only contain lowercase letters, digits, dashes, and underscores"
+        (tag InvalidTag)))
+      ((name file3)
+       ("tag must only contain lowercase letters, digits, dashes, and underscores"
+        (tag anotherBadTag)))))
     |}]
 ;;

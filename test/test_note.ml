@@ -8,15 +8,14 @@ let%expect_test "load notes" =
   [%expect
     {|
     (Ok
-     (((name note1.md) (tags (a b c)))
-      ((name subdir/note2.md) (tags (a b othertag)))))
+     (((name note1) (tags (a b c))) ((name subdir/note2) (tags (a b othertag)))))
     |}];
   let bad_notes = Note.load ~base_path:"./invalid_tag_notes" in
   print_s [%sexp (bad_notes : Set.M(Note).t Or_error.t)];
   [%expect
     {|
     (Error
-     ((path ./invalid_tag_notes/bad_note.md)
+     ((name bad_note)
       ("tag must only contain lowercase letters, digits, dashes, and underscores"
        (tag INVALID))))
     |}]
