@@ -22,6 +22,7 @@ let of_string s =
   else Ok s
 ;;
 
+let of_string_exn s = of_string s |> ok_exn
 let to_string t = t
 
 let%expect_test "tag from string" =
