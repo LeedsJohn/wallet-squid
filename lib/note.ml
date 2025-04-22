@@ -15,7 +15,7 @@ end
 
 include Note
 
-let get_tags text =
+let read_tags text =
   let%bind.Or_error tags =
     String.split_lines text
     |> List.hd
@@ -33,7 +33,7 @@ let make_all notes =
   let%bind.Or_error note_list =
     List.map notes ~f:(fun (filename, content) ->
       let%bind.Or_error tags =
-        get_tags content |> Or_error.tag_s ~tag:[%message "" ~name:(filename : string)]
+        read_tags content |> Or_error.tag_s ~tag:[%message "" ~name:(filename : string)]
       in
       Ok { name = filename; tags })
     |> Or_error.all
@@ -76,12 +76,16 @@ let load ~base_path =
   |> make_all
 ;;
 
-let%expect_test "get_tags" =
+module Internal = struct
+  let make_all = make_all
+end
+
+let%expect_test "read_tags" =
   let good_line = "a, b, john_-023409" in
-  print_s [%sexp (get_tags good_line : Set.M(Tag).t Or_error.t)];
+  print_s [%sexp (read_tags good_line : Set.M(Tag).t Or_error.t)];
   [%expect {| (Ok (a b john_-023409)) |}];
   let bad_line = "a, b, john_-023409, CAPITAL" in
-  print_s [%sexp (get_tags bad_line : Set.M(Tag).t Or_error.t)];
+  print_s [%sexp (read_tags bad_line : Set.M(Tag).t Or_error.t)];
   [%expect
     {|
     (Error
