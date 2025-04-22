@@ -16,7 +16,7 @@ let of_string s =
     error_s
       [%message
         "tag must only contain lowercase letters, digits, dashes, and underscores"
-          (s : string)]
+          ~tag:(s : string)]
   else if not (Int.between ~low:1 ~high:64 (String.length s))
   then error_s [%message "tag must be between 1 and 64 characters"]
   else Ok s
@@ -32,14 +32,14 @@ let%expect_test "tag from string" =
     {|
     (Error
      ("tag must only contain lowercase letters, digits, dashes, and underscores"
-      (s "bad tag")))
+      (tag "bad tag")))
     |}];
   print_s [%sexp (of_string "badTag" : t Or_error.t)];
   [%expect
     {|
     (Error
      ("tag must only contain lowercase letters, digits, dashes, and underscores"
-      (s badTag)))
+      (tag badTag)))
     |}];
   print_s
     [%sexp
