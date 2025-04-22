@@ -1,2 +1,9 @@
-(test
- (name test_wallet_squid))
+(library
+ (name test_wallet_squid)
+ (libraries core wallet_squid)
+ (preprocess
+  (pps ppx_jane))
+ (inline_tests
+  (deps
+   (source_tree example_notes_for_testing)
+   (source_tree invalid_tag_notes))))
