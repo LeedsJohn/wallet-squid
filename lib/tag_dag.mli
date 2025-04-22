@@ -3,6 +3,8 @@ open! Core
 (** DAG (Directed acyclic graph) of tags. *)
 type t [@@deriving sexp_of]
 
+val empty : t
+
 (** Returns map where the key is the connected tag and the value is the number of
     minimum number of edges to travel from the start tag to that end tag *)
 val get_connected_tags : ?max_distance:int -> t -> Tag.t -> int Map.M(Tag).t
