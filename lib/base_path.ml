@@ -12,3 +12,13 @@ let of_string path =
 let to_filename t = t
 let of_string_exn path = of_string path |> ok_exn
 let arg_type = Command.Arg_type.create of_string_exn
+
+let param =
+  let%map_open.Command base_path =
+    flag
+      "-base-path"
+      (required arg_type)
+      ~doc:"path Path to root of directory containing notes"
+  in
+  base_path
+;;
