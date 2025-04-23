@@ -29,6 +29,14 @@ let to_sorted_freq_list { tag_map; dag = _ } =
     if freq1 <> freq2 then Int.compare freq2 freq1 else Tag.compare tag1 tag2)
 ;;
 
+let print_sorted_freq_list t =
+  "tag (occurrences)"
+  :: (to_sorted_freq_list t
+      |> List.map ~f:(fun (tag, freq) -> [%string "%{Tag.to_string tag} (%{freq#Int})"]))
+  |> String.concat ~sep:"\n"
+  |> print_endline
+;;
+
 let find { tag_map; dag } tag =
   Tag_dag.get_connected_tags dag tag
   |> Map.keys
