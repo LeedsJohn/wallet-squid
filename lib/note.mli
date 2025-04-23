@@ -17,7 +17,7 @@ val comparator : (t, comparator_witness) Comparator.t
 
 (** Recursively searches the directory at base_path to find all notes ending with ".md"
     Returns an error if any of the notes have invalid tags. *)
-val load : base_path:Filename.t -> Set.M(Note).t Or_error.t
+val load : Base_path.t -> Set.M(Note).t Or_error.t
 
 (** only used for testing *)
 module Internal : sig

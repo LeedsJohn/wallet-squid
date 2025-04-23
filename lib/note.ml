@@ -64,7 +64,8 @@ let ls_recursive ~base_path =
   aux [] base_path
 ;;
 
-let load ~base_path =
+let load base_path =
+  let base_path = Base_path.to_filename base_path in
   ls_recursive ~base_path
   |> List.map ~f:(fun file_path ->
     let fname =

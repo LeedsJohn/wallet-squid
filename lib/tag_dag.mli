@@ -9,7 +9,10 @@ val empty : t
     minimum number of edges to travel from the start tag to that end tag *)
 val get_connected_tags : ?max_distance:int -> t -> Tag.t -> int Map.M(Tag).t
 
-val load : Filename.t -> t Or_error.t
+val save : t -> Base_path.t -> unit
+
+(** Returns empty dag if the file does not exist *)
+val load : Base_path.t -> t
 
 (** Error if the edge creates a cycle. Does nothing if the edge already exists *)
 val add_edge : t -> from:Tag.t -> to_:Tag.t -> t Or_error.t

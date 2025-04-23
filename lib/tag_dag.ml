@@ -1,5 +1,8 @@
 open! Core
 
+(* edges will be saved in [base_path]/[file_name] *)
+let filename = "tag_edges.sexp"
+
 (* TODO: write to file *)
 
 type t = Set.M(Tag).t Map.M(Tag).t [@@deriving sexp]
@@ -25,8 +28,17 @@ let get_connected_tags ?(max_distance = Int.max_value) t tag =
   bfs (Map.singleton (module Tag) tag 0) (Set.singleton (module Tag) tag) 1
 ;;
 
-(* TODO: what happens when the file doesn't exist? *)
-let load filename = Sexp.load_sexp filename |> t_of_sexp |> Ok
+let save t base_path =
+  let path = Base_path.to_filename base_path ^ "/" ^ filename in
+  Sexp.save path (sexp_of_t t)
+;;
+
+let load base_path =
+  let path = Base_path.to_filename base_path ^ "/" ^ filename in
+  match Sys_unix.is_file path with
+  | `Yes -> Sexp.load_sexp filename |> t_of_sexp
+  | `No | `Unknown -> empty
+;;
 
 let find_cycle_starting_from_edge t ~from ~to_ =
   let rec dfs visited path =
