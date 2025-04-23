@@ -3,8 +3,6 @@ open! Core
 (* edges will be saved in [base_path]/[file_name] *)
 let filename = "tag_edges.sexp"
 
-(* TODO: write to file *)
-
 type t = Set.M(Tag).t Map.M(Tag).t [@@deriving sexp]
 
 let empty = Map.empty (module Tag)
