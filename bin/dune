@@ -1,4 +1,4 @@
 (executable
  (public_name wallet_squid)
  (name main)
- (libraries wallet_squid))
+ (libraries core core_unix.command_unix wallet_squid))
