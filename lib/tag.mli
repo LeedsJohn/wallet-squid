@@ -12,3 +12,4 @@ val of_string : string -> t Or_error.t
 
 val of_string_exn : string -> t
 val to_string : t -> string
+val arg_type : t Command.Arg_type.t

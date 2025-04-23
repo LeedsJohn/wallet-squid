@@ -24,6 +24,7 @@ let of_string s =
 
 let of_string_exn s = of_string s |> ok_exn
 let to_string t = t
+let arg_type = Command.Arg_type.create of_string_exn
 
 let%expect_test "tag from string" =
   print_s [%sexp (of_string "good_tag-123" : t Or_error.t)];
