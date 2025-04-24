@@ -2,6 +2,9 @@ open! Core
 
 module Note = struct
   module T = struct
+    (* [tags] contains every tag in the note and all tags associated with that tag. For
+       example, if a note is tagged with ocaml and the tag dag contains an edge from
+       ocaml to programming, [tags] will contain both ocaml and programming. *)
     type t =
       { name : string
       ; tags : Set.M(Tag).t

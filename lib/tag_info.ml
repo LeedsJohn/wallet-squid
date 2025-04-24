@@ -1,29 +1,22 @@
 open! Core
 
-type t =
-  { tag_map : Set.M(Note).t Map.M(Tag).t
-  ; dag : Tag_dag.t
-  }
-[@@deriving sexp_of]
+type t = Set.M(Note).t Map.M(Tag).t [@@deriving sexp_of]
 
-let make notes dag =
-  let tag_map =
-    Set.to_list notes
-    |> List.map ~f:(fun (({ tags; name = _ } : Note.t) as note) ->
-      Set.to_list tags |> List.map ~f:(fun tag -> tag, note))
-    |> List.join
-    |> List.fold
-         ~init:(Map.empty (module Tag))
-         ~f:(fun acc (tag, note) ->
-           Map.update acc tag ~f:(function
-             | None -> Set.singleton (module Note) note
-             | Some s -> Set.add s note))
-  in
-  { tag_map; dag }
+let make notes =
+  Set.to_list notes
+  |> List.map ~f:(fun (({ tags; name = _ } : Note.t) as note) ->
+    Set.to_list tags |> List.map ~f:(fun tag -> tag, note))
+  |> List.join
+  |> List.fold
+       ~init:(Map.empty (module Tag))
+       ~f:(fun acc (tag, note) ->
+         Map.update acc tag ~f:(function
+           | None -> Set.singleton (module Note) note
+           | Some s -> Set.add s note))
 ;;
 
-let to_sorted_freq_list { tag_map; dag = _ } =
-  Map.map tag_map ~f:Set.length
+let to_sorted_freq_list t =
+  Map.map t ~f:Set.length
   |> Map.to_alist
   |> List.sort ~compare:(fun (tag1, freq1) (tag2, freq2) ->
     if freq1 <> freq2 then Int.compare freq2 freq1 else Tag.compare tag1 tag2)
@@ -37,32 +30,25 @@ let print_sorted_freq_list t =
   |> print_endline
 ;;
 
-let find { tag_map; dag } tag =
-  Tag_dag.get_connected_tags dag tag
-  |> Map.keys
-  |> List.map ~f:(Map.find tag_map)
-  |> List.map ~f:(Option.value ~default:(Set.empty (module Note)))
-  |> Set.union_list (module Note)
-;;
+let find t tag = Map.find t tag |> Option.value ~default:(Set.empty (module Note))
 
 let param =
   let%map_open.Command base_path = Base_path.param in
   let notes = Note.load base_path |> ok_exn in
-  let tag_dag = Tag_dag.load base_path in
-  make notes tag_dag
+  make notes
 ;;
 
 let test_note_list =
-  [ ( "file1"
-    , {|tag1, tag2
+  [ ( "ocaml_notes"
+    , {|ocaml, math
 
-    this is some text for the note|}
+    this is some text for a note about ocaml and math|}
     )
-  ; "subdir/file2", "tag1, a"
-  ; ( "file3"
+  ; "work/cool_thing", "ocaml, plans"
+  ; ( "random_note"
     , {|
 
-    note text|}
+    note text for a note with no tags|}
     )
   ]
 ;;
@@ -70,36 +56,42 @@ let test_note_list =
 let test_notes = Note.Internal.make_all test_note_list Tag_dag.empty |> ok_exn
 
 let%expect_test "make tag info" =
-  print_s [%sexp (make test_notes Tag_dag.empty : t)];
+  print_s [%sexp (make test_notes : t)];
   [%expect
     {|
-    ((tag_map
-      ((a (((name subdir/file2) (tags (a tag1)))))
-       (tag1
-        (((name file1) (tags (tag1 tag2))) ((name subdir/file2) (tags (a tag1)))))
-       (tag2 (((name file1) (tags (tag1 tag2)))))))
-     (dag ()))
+    ((math (((name ocaml_notes) (tags (math ocaml)))))
+     (ocaml
+      (((name ocaml_notes) (tags (math ocaml)))
+       ((name work/cool_thing) (tags (ocaml plans)))))
+     (plans (((name work/cool_thing) (tags (ocaml plans))))))
     |}]
 ;;
 
 let%expect_test "list tags" =
-  print_s
-    [%sexp (to_sorted_freq_list (make test_notes Tag_dag.empty) : (Tag.t * int) list)];
-  [%expect {| ((tag1 2) (a 1) (tag2 1)) |}]
+  print_sorted_freq_list (make test_notes);
+  [%expect
+    {|
+    tag (occurrences)
+    ocaml (2)
+    math (1)
+    plans (1)
+    |}]
 ;;
 
 let%expect_test "search by tag" =
-  let tag1, tag2 = Tag.of_string_exn "tag1", Tag.of_string_exn "z" in
+  let tag1, tag2 = Tag.of_string_exn "ocaml", Tag.of_string_exn "programming" in
+  let tag_dag = Tag_dag.(add_edge empty ~from:tag1 ~to_:tag2 |> ok_exn) in
   let notes =
-    Note.Internal.make_all (("file4", "tag1, z") :: test_note_list) Tag_dag.empty
+    Note.Internal.make_all (("python_notes", "programming") :: test_note_list) tag_dag
     |> ok_exn
   in
-  let t = make notes Tag_dag.(add_edge empty ~from:tag1 ~to_:tag2 |> ok_exn) in
-  print_s [%sexp (find t tag1 : Set.M(Note).t)];
+  let t = make notes in
+  print_s [%sexp (find t tag2 : Set.M(Note).t)];
   [%expect
     {|
-    (((name file1) (tags (tag1 tag2))) ((name file4) (tags (tag1 z)))
-     ((name subdir/file2) (tags (a tag1))))
+    (((name ocaml_notes) (tags (math ocaml programming)))
+     ((name python_notes) (tags (programming)))
+     ((name work/cool_thing) (tags (ocaml plans programming))))
     |}];
   print_s [%sexp (find t (Tag.of_string_exn "nonexistent") : Set.M(Note).t)];
   [%expect {| () |}]
