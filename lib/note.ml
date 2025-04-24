@@ -43,7 +43,9 @@ let make_all notes =
 
 let ls_recursive ~base_path =
   let rec aux acc cur =
-    let names = Sys_unix.ls_dir cur |> List.map ~f:(fun fname -> cur ^ "/" ^ fname) in
+    let names =
+      Sys_unix.ls_dir cur |> List.map ~f:(fun fname -> [%string "%{cur}/%{fname}"])
+    in
     let note_files =
       List.filter names ~f:(fun path ->
         let is_file =

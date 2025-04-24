@@ -27,12 +27,12 @@ let get_connected_tags ?(max_distance = Int.max_value) t tag =
 ;;
 
 let save t base_path =
-  let path = Base_path.to_filename base_path ^ "/" ^ filename in
+  let path = [%string "%{Base_path.to_filename base_path}/%{filename}"] in
   Sexp.save path (sexp_of_t t)
 ;;
 
 let load base_path =
-  let path = Base_path.to_filename base_path ^ "/" ^ filename in
+  let path = [%string "%{Base_path.to_filename base_path}/%{filename}"] in
   match Sys_unix.is_file path with
   | `Yes -> Sexp.load_sexp filename |> t_of_sexp
   | `No | `Unknown -> empty
