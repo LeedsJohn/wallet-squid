@@ -15,7 +15,7 @@ end
 
 include Note
 
-let read_tags text =
+let read_tags text tag_dag =
   let%bind.Or_error tags =
     String.split_lines text
     |> List.hd
@@ -26,14 +26,18 @@ let read_tags text =
     |> List.map ~f:Tag.of_string
     |> Or_error.all
   in
-  Ok (Set.of_list (module Tag) tags)
+  List.map tags ~f:(Tag_dag.get_connected_tags tag_dag)
+  |> List.map ~f:Map.key_set
+  |> Set.union_list (module Tag)
+  |> Ok
 ;;
 
-let make_all notes =
+let make_all notes tag_dag =
   let%bind.Or_error note_list =
     List.map notes ~f:(fun (filename, content) ->
       let%bind.Or_error tags =
-        read_tags content |> Or_error.tag_s ~tag:[%message "" ~name:(filename : string)]
+        read_tags content tag_dag
+        |> Or_error.tag_s ~tag:[%message "" ~name:(filename : string)]
       in
       Ok { name = filename; tags })
     |> Or_error.all
@@ -67,16 +71,19 @@ let ls_recursive ~base_path =
 ;;
 
 let load base_path =
+  let tag_dag = Tag_dag.load base_path in
   let base_path = Base_path.to_filename base_path in
-  ls_recursive ~base_path
-  |> List.map ~f:(fun file_path ->
-    let fname =
-      String.chop_prefix_exn file_path ~prefix:(base_path ^ "/")
-      |> String.chop_suffix_exn ~suffix:".md"
-    in
-    let content = In_channel.read_all file_path in
-    fname, content)
-  |> make_all
+  let notes =
+    ls_recursive ~base_path
+    |> List.map ~f:(fun file_path ->
+      let fname =
+        String.chop_prefix_exn file_path ~prefix:(base_path ^ "/")
+        |> String.chop_suffix_exn ~suffix:".md"
+      in
+      let content = In_channel.read_all file_path in
+      fname, content)
+  in
+  make_all notes tag_dag
 ;;
 
 module Internal = struct
@@ -85,10 +92,17 @@ end
 
 let%expect_test "read_tags" =
   let good_line = "a, b, john_-023409" in
-  print_s [%sexp (read_tags good_line : Set.M(Tag).t Or_error.t)];
-  [%expect {| (Ok (a b john_-023409)) |}];
+  let tag_dag =
+    Tag_dag.add_edge
+      Tag_dag.empty
+      ~from:(Tag.of_string_exn "a")
+      ~to_:(Tag.of_string_exn "connected_tag")
+    |> ok_exn
+  in
+  print_s [%sexp (read_tags good_line tag_dag : Set.M(Tag).t Or_error.t)];
+  [%expect {| (Ok (a b connected_tag john_-023409)) |}];
   let bad_line = "a, b, john_-023409, CAPITAL" in
-  print_s [%sexp (read_tags bad_line : Set.M(Tag).t Or_error.t)];
+  print_s [%sexp (read_tags bad_line Tag_dag.empty : Set.M(Tag).t Or_error.t)];
   [%expect
     {|
     (Error
@@ -112,7 +126,7 @@ let%expect_test "load" =
       )
     ]
   in
-  print_s [%sexp (make_all good_notes : Set.M(Note).t Or_error.t)];
+  print_s [%sexp (make_all good_notes Tag_dag.empty : Set.M(Note).t Or_error.t)];
   [%expect
     {|
     (Ok
@@ -122,7 +136,7 @@ let%expect_test "load" =
   let bad_notes =
     [ "file1", "InvalidTag"; "file2", "good_tag"; "file3", "anotherBadTag" ]
   in
-  print_s [%sexp (make_all bad_notes : Set.M(Note).t Or_error.t)];
+  print_s [%sexp (make_all bad_notes Tag_dag.empty : Set.M(Note).t Or_error.t)];
   [%expect
     {|
     (Error

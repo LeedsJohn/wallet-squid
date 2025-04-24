@@ -21,5 +21,5 @@ val load : Base_path.t -> Set.M(Note).t Or_error.t
 
 (** only used for testing *)
 module Internal : sig
-  val make_all : (string * string) list -> Set.M(Note).t Or_error.t
+  val make_all : (string * string) list -> Tag_dag.t -> Set.M(Note).t Or_error.t
 end

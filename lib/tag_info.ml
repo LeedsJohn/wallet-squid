@@ -67,7 +67,7 @@ let test_note_list =
   ]
 ;;
 
-let test_notes = Note.Internal.make_all test_note_list |> ok_exn
+let test_notes = Note.Internal.make_all test_note_list Tag_dag.empty |> ok_exn
 
 let%expect_test "make tag info" =
   print_s [%sexp (make test_notes Tag_dag.empty : t)];
@@ -90,7 +90,10 @@ let%expect_test "list tags" =
 
 let%expect_test "search by tag" =
   let tag1, tag2 = Tag.of_string_exn "tag1", Tag.of_string_exn "z" in
-  let notes = Note.Internal.make_all (("file4", "tag1, z") :: test_note_list) |> ok_exn in
+  let notes =
+    Note.Internal.make_all (("file4", "tag1, z") :: test_note_list) Tag_dag.empty
+    |> ok_exn
+  in
   let t = make notes Tag_dag.(add_edge empty ~from:tag1 ~to_:tag2 |> ok_exn) in
   print_s [%sexp (find t tag1 : Set.M(Note).t)];
   [%expect
