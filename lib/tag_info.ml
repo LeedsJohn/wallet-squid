@@ -45,6 +45,13 @@ let find { tag_map; dag } tag =
   |> Set.union_list (module Note)
 ;;
 
+let param =
+  let%map_open.Command base_path = Base_path.param in
+  let notes = Note.load base_path |> ok_exn in
+  let tag_dag = Tag_dag.load base_path in
+  make notes tag_dag
+;;
+
 let test_note_list =
   [ ( "file1"
     , {|tag1, tag2

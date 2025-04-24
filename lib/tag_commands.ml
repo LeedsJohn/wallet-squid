@@ -1,14 +1,10 @@
 open! Core
 
-(* TODO: potentially have a notes param that does all of this or something like that...? *)
 let list_tags =
   Command.basic
     ~summary:"List all tags (ordered by frequency)"
-    (let%map_open.Command base_path = Base_path.param in
-     fun () ->
-       let notes = Note.load base_path |> ok_exn in
-       let tag_dag = Tag_dag.load base_path in
-       Tag_info.(print_sorted_freq_list (make notes tag_dag)))
+    (let%map_open.Command tag_info = Tag_info.param in
+     fun () -> Tag_info.print_sorted_freq_list tag_info)
 ;;
 
 let command =
