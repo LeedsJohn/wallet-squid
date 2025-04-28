@@ -26,15 +26,13 @@ let get_connected_tags ?(max_distance = Int.max_value) t tag =
   bfs (Map.singleton (module Tag) tag 0) (Set.singleton (module Tag) tag) 1
 ;;
 
-let save t base_path =
-  let path = [%string "%{Base_path.to_filename base_path}/%{filename}"] in
-  Sexp.save path (sexp_of_t t)
-;;
+let get_path base_path = [%string "%{Base_path.to_filename base_path}/%{filename}"]
+let save t base_path = Sexp.save (get_path base_path) (sexp_of_t t)
 
 let load base_path =
-  let path = [%string "%{Base_path.to_filename base_path}/%{filename}"] in
+  let path = get_path base_path in
   match Sys_unix.is_file path with
-  | `Yes -> Sexp.load_sexp filename |> t_of_sexp
+  | `Yes -> Sexp.load_sexp path |> t_of_sexp
   | `No | `Unknown -> empty
 ;;
 
