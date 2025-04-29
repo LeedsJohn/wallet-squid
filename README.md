@@ -8,6 +8,13 @@ You'll have to clone this project and install the dependencies (likely using opa
 will write better instructions once I go through an install on a new computer or opens
 an issue.  Because `core_unix` is a dependency, I doubt this will work on Windows.
 
+⚠️ **Important:** Once you have built `wallet-squid`, I recommend creating an alias in
+your shell config to make running the executable easier. For example, if this directory
+was in my home directory, I would add the line
+`alias ws='~/wallet-squid/_build/default/bin/main.exe'` to my `.zshrc`. After this, I
+can run `wallet-squid` using the command `ws` instead of typing the path to the
+executable.
+
 ## Usage
 
 ### Setting the base path
@@ -18,8 +25,6 @@ is your base path.
 ⚠️ **Important:** While this can be provided on the command line when
 needed, it is easier to set the environment variable `WALLET_SQUID_BASE_PATH`. For
 example, you could add `export WALLET_SQUID_BASE_PATH=~/notes` to your `.bashrc`.
-
-TODO: leave instructions for creating a function to run wallet squid.
 
 ### Creating Notes
 
@@ -49,8 +54,8 @@ This note will be tagged with `ocaml` and `class`.
 ### Tags
 
 Tags can be connected to each other.  For example, I might connect the `ocaml` tag to a
-`programming` tag.  (To do this, I would run the command `dune exec -- wallet_squid tag
-add_connection -from ocaml -to programming`).  Now, every note tagged with `ocaml` will
+`programming` tag.  (To do this, I would run the command
+`ws tag add_connection -from ocaml -to programming`).  Now, every note tagged with `ocaml` will
 automatically be tagged with `programming` too. So, when I search for notes tagged with
 `programming`, the previous example note will pull up.
 
