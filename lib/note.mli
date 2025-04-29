@@ -15,11 +15,11 @@ type comparator_witness = Note.comparator_witness
 
 val comparator : (t, comparator_witness) Comparator.t
 
-(** Recursively searches the directory at base_path to find all notes ending with ".md"
+(** Recursively searches the directory at base_path to find all notes ending with ".md".
     Returns an error if any of the notes have invalid tags. *)
 val load : Base_path.t -> Set.M(Note).t Or_error.t
 
-(** only used for testing *)
+(** Only used for testing. *)
 module Internal : sig
   val make_all : (string * string) list -> Tag_dag.t -> Set.M(Note).t Or_error.t
 end

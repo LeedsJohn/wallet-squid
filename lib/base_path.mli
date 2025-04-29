@@ -1,9 +1,9 @@
 open! Core
 
-(** directory containing notes *)
+(** Directory containing notes. *)
 type t
 
-(** returns error case if the provided path is not a directory *)
+(** Returns an error if the provided path is not a directory. *)
 val of_string : string -> t Or_error.t
 
 val to_filename : t -> Filename.t
