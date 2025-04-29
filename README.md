@@ -13,7 +13,9 @@ an issue.  Because `core_unix` is a dependency, I doubt this will work on Window
 ### Setting the base path
 
 Create a directory to hold your notes.  For example, my directory is in `~/notes`.  This
-is your base path. ⚠️ **Important:** ⚠️ While this can be provided on the command line when
+is your base path.
+
+⚠️ **Important:** While this can be provided on the command line when
 needed, it is easier to set the environment variable `WALLET_SQUID_BASE_PATH`. For
 example, you could add `export WALLET_SQUID_BASE_PATH=~/notes` to your `.bashrc`.
 
@@ -22,7 +24,10 @@ TODO: leave instructions for creating a function to run wallet squid.
 ### Creating Notes
 
 To create a note, simply make a [markdown file](https://www.markdownguide.org/).
-⚠️ **Important:** ⚠️  The file name must end in `.md`.  This will be the name of the note. You
+
+⚠️ **Important:** The file name must end in `.md`.
+
+This will be the name of the note. You
 can create subdirectories inside of your notes directory - so, if I have a file
 `~/notes/subdirectory/note.md`, that note would have the name `subdirectory/note`.
 
