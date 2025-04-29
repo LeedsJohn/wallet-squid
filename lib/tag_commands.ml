@@ -38,11 +38,22 @@ let remove_connection =
        save tag_dag base_path)
 ;;
 
+let search =
+  Command.basic
+    ~summary:"Find notes with given tag"
+    (let%map_open.Command tag_info = Tag_info.param
+     and tag = anon ("tag" %: Tag.arg_type) in
+     fun () ->
+       Tag_info.find tag_info tag
+       |> Set.iter ~f:(fun { name; tags = _ } -> print_endline name))
+;;
+
 let command =
   Command.group
     ~summary:"commands to interact with tags"
     [ "list", list_tags
     ; "add-connection", add_connection
     ; "remove-connection", remove_connection
+    ; "search", search
     ]
 ;;
