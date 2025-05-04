@@ -8,6 +8,7 @@ module Note = struct
     type t =
       { name : string
       ; tags : Set.M(Tag).t
+      ; content : string
       }
     [@@deriving compare, sexp_of]
   end
@@ -42,7 +43,7 @@ let make_all notes tag_dag =
         read_tags content tag_dag
         |> Or_error.tag_s ~tag:[%message "" ~name:(filename : string)]
       in
-      Ok { name = filename; tags })
+      Ok { name = filename; tags; content })
     |> Or_error.all
   in
   Ok (Set.of_list (module Note) note_list)
@@ -133,8 +134,14 @@ let%expect_test "load" =
   [%expect
     {|
     (Ok
-     (((name file1) (tags (tag1 tag2))) ((name file3) (tags ()))
-      ((name subdir/file2) (tags (a tag1)))))
+     (((name file1) (tags (tag1 tag2))
+       (content  "tag1, tag2\
+                \n\
+                \n    this is some text for the note"))
+      ((name file3) (tags ()) (content  "\
+                                       \n\
+                                       \n    note text"))
+      ((name subdir/file2) (tags (a tag1)) (content "tag1, a"))))
     |}];
   let bad_notes =
     [ "file1", "InvalidTag"; "file2", "good_tag"; "file3", "anotherBadTag" ]

@@ -4,7 +4,7 @@ type t = Set.M(Note).t Map.M(Tag).t [@@deriving sexp_of]
 
 let make notes =
   Set.to_list notes
-  |> List.map ~f:(fun (({ tags; name = _ } : Note.t) as note) ->
+  |> List.map ~f:(fun (({ tags; name = _; content = _ } : Note.t) as note) ->
     Set.to_list tags |> List.map ~f:(fun tag -> tag, note))
   |> List.join
   |> List.fold
@@ -59,11 +59,21 @@ let%expect_test "make tag info" =
   print_s [%sexp (make test_notes : t)];
   [%expect
     {|
-    ((math (((name ocaml_notes) (tags (math ocaml)))))
+    ((math
+      (((name ocaml_notes) (tags (math ocaml))
+        (content
+          "ocaml, math\
+         \n\
+         \n    this is some text for a note about ocaml and math"))))
      (ocaml
-      (((name ocaml_notes) (tags (math ocaml)))
-       ((name work/cool_thing) (tags (ocaml plans)))))
-     (plans (((name work/cool_thing) (tags (ocaml plans))))))
+      (((name ocaml_notes) (tags (math ocaml))
+        (content
+          "ocaml, math\
+         \n\
+         \n    this is some text for a note about ocaml and math"))
+       ((name work/cool_thing) (tags (ocaml plans)) (content "ocaml, plans"))))
+     (plans
+      (((name work/cool_thing) (tags (ocaml plans)) (content "ocaml, plans")))))
     |}]
 ;;
 
@@ -89,9 +99,14 @@ let%expect_test "search by tag" =
   print_s [%sexp (find t tag2 : Set.M(Note).t)];
   [%expect
     {|
-    (((name ocaml_notes) (tags (math ocaml programming)))
-     ((name python_notes) (tags (programming)))
-     ((name work/cool_thing) (tags (ocaml plans programming))))
+    (((name ocaml_notes) (tags (math ocaml programming))
+      (content
+        "ocaml, math\
+       \n\
+       \n    this is some text for a note about ocaml and math"))
+     ((name python_notes) (tags (programming)) (content programming))
+     ((name work/cool_thing) (tags (ocaml plans programming))
+      (content "ocaml, plans")))
     |}];
   print_s [%sexp (find t (Tag.of_string_exn "nonexistent") : Set.M(Note).t)];
   [%expect {| () |}]

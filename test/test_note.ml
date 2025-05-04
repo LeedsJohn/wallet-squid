@@ -9,7 +9,19 @@ let%expect_test "load notes" =
   [%expect
     {|
     (Ok
-     (((name note1) (tags (a b c))) ((name subdir/note2) (tags (a b othertag)))))
+     (((name note1) (tags (a b c))
+       (content  "a, b, c\
+                \n\
+                \nThis is an example note for testing\
+                \n"))
+      ((name subdir/note2) (tags (a b othertag))
+       (content
+         "a, b, othertag\
+        \n\
+        \n# Note 2\
+        \n\
+        \nHere's another note for testing\
+        \n"))))
     |}];
   let base_path = Base_path.of_string "./invalid_tag_notes" |> ok_exn in
   let bad_notes = Note.load base_path in

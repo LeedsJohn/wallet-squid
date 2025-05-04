@@ -4,6 +4,7 @@ module Note : sig
   type t =
     { name : string
     ; tags : Set.M(Tag).t
+    ; content : string
     }
   [@@deriving compare, sexp_of]
 

@@ -45,7 +45,7 @@ let search =
      and tag = anon ("tag" %: Tag.arg_type) in
      fun () ->
        Tag_info.find tag_info tag
-       |> Set.iter ~f:(fun { name; tags = _ } -> print_endline name))
+       |> Set.iter ~f:(fun { name; tags = _; content = _ } -> print_endline name))
 ;;
 
 let command =
