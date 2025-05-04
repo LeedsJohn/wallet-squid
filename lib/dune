@@ -1,6 +1,6 @@
 (library
  (name wallet_squid)
- (libraries core core_unix.sys_unix)
+ (libraries core core_unix.sys_unix fzf)
  (preprocess
   (pps ppx_jane))
  (inline_tests))

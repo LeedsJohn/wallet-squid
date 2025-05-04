@@ -90,6 +90,19 @@ let load base_path =
   make_all notes tag_dag
 ;;
 
+let fzf notes =
+  Set.to_list notes
+  |> List.map ~f:(fun ({ name; content; tags = _ } as note) ->
+    [%string "%{name}\n%{content}"], note)
+  |> Fzf.Pick_from.assoc
+  |> Fzf.Blocking.pick_one ~preview:"echo {} | cat"
+;;
+
+let param =
+  let%map_open.Command base_path = Base_path.param in
+  load base_path |> ok_exn
+;;
+
 module Internal = struct
   let make_all = make_all
 end

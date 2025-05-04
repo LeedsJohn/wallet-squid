@@ -20,6 +20,11 @@ val comparator : (t, comparator_witness) Comparator.t
     Returns an error if any of the notes have invalid tags. *)
 val load : Base_path.t -> Set.M(Note).t Or_error.t
 
+(** Fuzzy search all notes *)
+val fzf : Set.M(Note).t -> Note.t option
+
+val param : Set.M(Note).t Command.Param.t
+
 (** Only used for testing. *)
 module Internal : sig
   val make_all : (string * string) list -> Tag_dag.t -> Set.M(Note).t Or_error.t

@@ -33,8 +33,7 @@ let print_sorted_freq_list t =
 let find t tag = Map.find t tag |> Option.value ~default:(Set.empty (module Note))
 
 let param =
-  let%map_open.Command base_path = Base_path.param in
-  let notes = Note.load base_path |> ok_exn in
+  let%map_open.Command notes = Note.param in
   make notes
 ;;
 
