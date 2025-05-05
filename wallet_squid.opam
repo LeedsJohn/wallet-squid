@@ -11,6 +11,7 @@ depends: [
   "base"
   "core"
   "core_unix"
+  "fzf"
   "odoc" {with-doc}
 ]
 build: [

@@ -14,6 +14,6 @@
 (package
  (name wallet_squid)
  (synopsis "Note tracking system")
- (depends ocaml base core core_unix))
+ (depends ocaml base core core_unix fzf))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html
