@@ -15,16 +15,23 @@ was in my home directory, I would add the line
 can run `wallet-squid` using the command `ws` instead of typing the path to the
 executable.
 
-## Usage
+### Dependencies
 
-### Setting the base path
+The `fzf` command relies on, you guessed it, [`fzf`](https://github.com/junegunn/fzf).
+
+## Usage
 
 Create a directory to hold your notes.  For example, my directory is in `~/notes`.  This
 is your base path.
 
-⚠️ **Important:** While this can be provided on the command line when
-needed, it is easier to set the environment variable `WALLET_SQUID_BASE_PATH`. For
-example, you could add `export WALLET_SQUID_BASE_PATH=~/notes` to your `.bashrc`.
+### Environment Variables:
+
+Every environment variable can be specified with a flag, but I'd recommend [setting the
+following environment variables](https://www.freecodecamp.org/news/how-to-set-an-environment-variable-in-linux/):
+
+* `WALLET_SQUID_BASE_PATH` - the path that your notes are held in.
+* `WALLET_SQUID_MARKDOWN_EDITOR` - name of the program you want to open markdown files
+in (when opened with the `fzf` command).
 
 ### Creating Notes
 
