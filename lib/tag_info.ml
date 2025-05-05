@@ -23,11 +23,12 @@ let to_sorted_freq_list t =
 ;;
 
 let print_sorted_freq_list t =
-  "tag (occurrences)"
-  :: (to_sorted_freq_list t
-      |> List.map ~f:(fun (tag, freq) -> [%string "%{Tag.to_string tag} (%{freq#Int})"]))
-  |> String.concat ~sep:"\n"
-  |> print_endline
+  let headers = [ "tag"; "occurrences" ] in
+  let content =
+    to_sorted_freq_list t
+    |> List.map ~f:(fun (tag, freq) -> [ Tag.to_string tag; Int.to_string freq ])
+  in
+  Box_printer.print_exn ~headers ~content
 ;;
 
 let find t tag = Map.find t tag |> Option.value ~default:(Set.empty (module Note))
@@ -80,10 +81,15 @@ let%expect_test "list tags" =
   print_sorted_freq_list (make test_notes);
   [%expect
     {|
-    tag (occurrences)
-    ocaml (2)
-    math (1)
-    plans (1)
+    ┌───────┬─────────────┐
+    │  tag  │ occurrences │
+    ├───────┼─────────────┤
+    │ ocaml │      2      │
+    ├───────┼─────────────┤
+    │  math │      1      │
+    ├───────┼─────────────┤
+    │ plans │      1      │
+    └───────┴─────────────┘
     |}]
 ;;
 
