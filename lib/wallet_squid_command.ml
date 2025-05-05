@@ -3,7 +3,8 @@ open! Core
 let fzf =
   Command.basic
     ~summary:"Fuzzy find notes"
-    (let%map_open.Command base_path = Base_path.param in
+    (let%map_open.Command base_path = Base_path.param
+     and markdown_editor = Markdown_editor.param in
      let notes = Note.load base_path |> ok_exn in
      fun () ->
        let note = Note.fzf notes in
@@ -12,8 +13,11 @@ let fzf =
        | Some { name; content = _; tags = _ } ->
          let _ =
            Core_unix.exec
-             ~prog:"nvim"
-             ~argv:[ "nvim"; [%string "%{Base_path.to_filename base_path}/%{name}.md"] ]
+             ~prog:markdown_editor
+             ~argv:
+               [ markdown_editor
+               ; [%string "%{Base_path.to_filename base_path}/%{name}.md"]
+               ]
              ()
          in
          ())
