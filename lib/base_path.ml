@@ -31,6 +31,30 @@ let load_environment_variable () =
 ;;
 
 let to_filename t = t
+
+let ls_recursive t =
+  let rec aux acc cur =
+    let names =
+      Sys_unix.ls_dir cur |> List.map ~f:(fun fname -> [%string "%{cur}/%{fname}"])
+    in
+    let note_files =
+      List.filter names ~f:(fun filename ->
+        match Sys_unix.is_file filename with
+        | `Yes -> true
+        | `No | `Unknown -> false)
+      |> Set.of_list (module Filename)
+    in
+    let dirs =
+      List.filter names ~f:(fun path ->
+        match Sys_unix.is_directory path with
+        | `Yes -> true
+        | `No | `Unknown -> false)
+    in
+    List.fold dirs ~init:(Set.union acc note_files) ~f:aux
+  in
+  aux (Set.empty (module Filename)) t
+;;
+
 let of_string_exn path = of_string path |> ok_exn
 let arg_type = Command.Arg_type.create of_string_exn
 

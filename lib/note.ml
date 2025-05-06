@@ -49,39 +49,15 @@ let make_all notes tag_dag =
   Ok (Set.of_list (module Note) note_list)
 ;;
 
-let ls_recursive ~base_path =
-  let rec aux acc cur =
-    let names =
-      Sys_unix.ls_dir cur |> List.map ~f:(fun fname -> [%string "%{cur}/%{fname}"])
-    in
-    let note_files =
-      List.filter names ~f:(fun path ->
-        let is_file =
-          match Sys_unix.is_file path with
-          | `Yes -> true
-          | `No | `Unknown -> false
-        in
-        String.is_suffix path ~suffix:".md" && is_file)
-    in
-    let dirs =
-      List.filter names ~f:(fun path ->
-        match Sys_unix.is_directory path with
-        | `Yes -> true
-        | `No | `Unknown -> false)
-    in
-    List.fold dirs ~init:(acc @ note_files) ~f:aux
-  in
-  aux [] base_path
-;;
-
 let load base_path =
   let tag_dag = Tag_dag.load base_path in
-  let base_path = Base_path.to_filename base_path in
   let notes =
-    ls_recursive ~base_path
+    Base_path.ls_recursive base_path
+    |> Set.to_list
+    |> List.filter ~f:(String.is_suffix ~suffix:".md")
     |> List.map ~f:(fun file_path ->
       let fname =
-        String.chop_prefix_exn file_path ~prefix:(base_path ^ "/")
+        String.chop_prefix_exn file_path ~prefix:(Base_path.to_filename base_path ^ "/")
         |> String.chop_suffix_exn ~suffix:".md"
       in
       let content = In_channel.read_all file_path in
