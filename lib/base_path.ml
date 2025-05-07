@@ -32,6 +32,7 @@ let load_environment_variable () =
 
 let to_filename t = t
 
+(* All files in the base path (or subdirectories of the base path. *)
 let ls_recursive t =
   let rec aux acc cur =
     let names =
@@ -53,6 +54,10 @@ let ls_recursive t =
     List.fold dirs ~init:(Set.union acc note_files) ~f:aux
   in
   aux (Set.empty (module Filename)) t
+;;
+
+let get_note_filenames t =
+  ls_recursive t |> Set.filter ~f:(String.is_suffix ~suffix:".md")
 ;;
 
 let of_string_exn path = of_string path |> ok_exn

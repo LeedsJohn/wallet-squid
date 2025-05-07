@@ -1,23 +1,19 @@
 open! Core
 
-module Note = struct
-  module T = struct
-    (* [tags] contains every tag in the note and all tags associated with that tag. For
+module T = struct
+  (* [tags] contains every tag in the note and all tags associated with that tag. For
        example, if a note is tagged with ocaml and the tag dag contains an edge from
        ocaml to programming, [tags] will contain both ocaml and programming. *)
-    type t =
-      { name : string
-      ; tags : Set.M(Tag).t
-      ; content : string
-      }
-    [@@deriving compare, sexp_of]
-  end
-
-  include T
-  include Comparator.Make (T)
+  type t =
+    { name : string
+    ; tags : Set.M(Tag).t
+    ; content : string
+    }
+  [@@deriving compare, sexp_of]
 end
 
-include Note
+include T
+include Comparator.Make (T)
 
 let read_tags text tag_dag =
   let%bind.Or_error tags =
@@ -36,52 +32,11 @@ let read_tags text tag_dag =
   |> Ok
 ;;
 
-let make_all notes tag_dag =
-  let%bind.Or_error note_list =
-    List.map notes ~f:(fun (filename, content) ->
-      let%bind.Or_error tags =
-        read_tags content tag_dag
-        |> Or_error.tag_s ~tag:[%message "" ~name:(filename : string)]
-      in
-      Ok { name = filename; tags; content })
-    |> Or_error.all
-  in
-  Ok (Set.of_list (module Note) note_list)
+let make ~name ~content tag_dag =
+  match read_tags content tag_dag with
+  | Ok tags -> Ok { name; content; tags }
+  | Error _ as e -> Or_error.tag_s e ~tag:[%message "" (name : string)]
 ;;
-
-let load base_path =
-  let tag_dag = Tag_dag.load base_path in
-  let notes =
-    Base_path.ls_recursive base_path
-    |> Set.to_list
-    |> List.filter ~f:(String.is_suffix ~suffix:".md")
-    |> List.map ~f:(fun file_path ->
-      let fname =
-        String.chop_prefix_exn file_path ~prefix:(Base_path.to_filename base_path ^ "/")
-        |> String.chop_suffix_exn ~suffix:".md"
-      in
-      let content = In_channel.read_all file_path in
-      fname, content)
-  in
-  make_all notes tag_dag
-;;
-
-let fzf notes =
-  Set.to_list notes
-  |> List.map ~f:(fun ({ name; content; tags = _ } as note) ->
-    [%string "%{name}\n%{content}"], note)
-  |> Fzf.Pick_from.assoc
-  |> Fzf.Blocking.pick_one ~preview:"echo {} | cat"
-;;
-
-let param =
-  let%map_open.Command base_path = Base_path.param in
-  load base_path |> ok_exn
-;;
-
-module Internal = struct
-  let make_all = make_all
-end
 
 let%expect_test "read_tags" =
   let good_line = "a, b, john_-023409" in
@@ -104,7 +59,7 @@ let%expect_test "read_tags" =
     |}]
 ;;
 
-let%expect_test "load" =
+let%expect_test "make" =
   let good_notes =
     [ ( "file1"
       , {|tag1, tag2
@@ -118,32 +73,37 @@ let%expect_test "load" =
     note text|}
       )
     ]
+    |> List.map ~f:(fun (name, content) -> make ~name ~content Tag_dag.empty)
+    |> List.map ~f:(fun note -> [%sexp (note : t Or_error.t)])
   in
-  print_s [%sexp (make_all good_notes Tag_dag.empty : Set.M(Note).t Or_error.t)];
+  List.iter good_notes ~f:print_s;
   [%expect
     {|
     (Ok
-     (((name file1) (tags (tag1 tag2))
-       (content  "tag1, tag2\
-                \n\
-                \n    this is some text for the note"))
-      ((name file3) (tags ()) (content  "\
-                                       \n\
-                                       \n    note text"))
-      ((name subdir/file2) (tags (a tag1)) (content "tag1, a"))))
+     ((name file1) (tags (tag1 tag2))
+      (content  "tag1, tag2\
+               \n\
+               \n    this is some text for the note")))
+    (Ok ((name subdir/file2) (tags (a tag1)) (content "tag1, a")))
+    (Ok ((name file3) (tags ()) (content  "\
+                                         \n\
+                                         \n    note text")))
     |}];
   let bad_notes =
-    [ "file1", "InvalidTag"; "file2", "good_tag"; "file3", "anotherBadTag" ]
+    [ "file1", "InvalidTag"; "file3", "anotherBadTag" ]
+    |> List.map ~f:(fun (name, content) -> make ~name ~content Tag_dag.empty)
+    |> List.map ~f:(fun note -> [%sexp (note : t Or_error.t)])
   in
-  print_s [%sexp (make_all bad_notes Tag_dag.empty : Set.M(Note).t Or_error.t)];
+  List.iter bad_notes ~f:print_s;
   [%expect
     {|
     (Error
-     (((name file1)
-       ("tag must only contain lowercase letters, digits, dashes, and underscores"
-        (tag InvalidTag)))
-      ((name file3)
-       ("tag must only contain lowercase letters, digits, dashes, and underscores"
-        (tag anotherBadTag)))))
+     ((name file1)
+      ("tag must only contain lowercase letters, digits, dashes, and underscores"
+       (tag InvalidTag))))
+    (Error
+     ((name file3)
+      ("tag must only contain lowercase letters, digits, dashes, and underscores"
+       (tag anotherBadTag))))
     |}]
 ;;

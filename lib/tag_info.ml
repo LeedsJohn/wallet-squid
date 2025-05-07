@@ -34,7 +34,7 @@ let print_sorted_freq_list t =
 let find t tag = Map.find t tag |> Option.value ~default:(Set.empty (module Note))
 
 let param =
-  let%map_open.Command notes = Note.param in
+  let%map_open.Command notes = Note_set.param in
   make notes
 ;;
 
@@ -53,7 +53,7 @@ let test_note_list =
   ]
 ;;
 
-let test_notes = Note.Internal.make_all test_note_list Tag_dag.empty |> ok_exn
+let test_notes = Note_set.For_testing.make test_note_list Tag_dag.empty |> ok_exn
 
 let%expect_test "make tag info" =
   print_s [%sexp (make test_notes : t)];
@@ -97,7 +97,7 @@ let%expect_test "search by tag" =
   let tag1, tag2 = Tag.of_string_exn "ocaml", Tag.of_string_exn "programming" in
   let tag_dag = Tag_dag.(add_edge empty ~from:tag1 ~to_:tag2 |> ok_exn) in
   let notes =
-    Note.Internal.make_all (("python_notes", "programming") :: test_note_list) tag_dag
+    Note_set.For_testing.make (("python_notes", "programming") :: test_note_list) tag_dag
     |> ok_exn
   in
   let t = make notes in

@@ -4,7 +4,7 @@ open! Wallet_squid
 (* TODO: can / should this be written without using the file system? *)
 let%expect_test "load notes" =
   let base_path = Base_path.of_string "./example_notes_for_testing" |> ok_exn in
-  let good_notes = Note.load base_path in
+  let good_notes = Note_set.load base_path in
   print_s [%sexp (good_notes : Set.M(Note).t Or_error.t)];
   [%expect
     {|
@@ -24,7 +24,7 @@ let%expect_test "load notes" =
         \n"))))
     |}];
   let base_path = Base_path.of_string "./invalid_tag_notes" |> ok_exn in
-  let bad_notes = Note.load base_path in
+  let bad_notes = Note_set.load base_path in
   print_s [%sexp (bad_notes : Set.M(Note).t Or_error.t)];
   [%expect
     {|

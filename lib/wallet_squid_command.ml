@@ -5,9 +5,9 @@ let fzf =
     ~summary:"Fuzzy find notes"
     (let%map_open.Command base_path = Base_path.param
      and markdown_editor = Markdown_editor.param in
-     let notes = Note.load base_path |> ok_exn in
+     let notes = Note_set.load base_path |> ok_exn in
      fun () ->
-       let note = Note.fzf notes in
+       let note = Note_set.fzf notes in
        match note with
        | None -> print_endline "No note selected"
        | Some { name; content = _; tags = _ } ->
