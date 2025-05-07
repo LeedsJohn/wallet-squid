@@ -11,7 +11,7 @@ let make notes tag_dag =
 ;;
 
 let load base_path =
-  let tag_dag = Tag_dag.load base_path in
+  let%bind.Or_error tag_dag = Tag_dag.load base_path in
   let notes =
     Base_path.get_note_filenames base_path
     |> Set.to_list

@@ -18,9 +18,10 @@ let add_connection =
        flag "-from" (required Tag.arg_type) ~doc:"tag Tag to add a connection from"
      and to_ = flag "-to" (required Tag.arg_type) ~doc:"tag Tag to add a connection to" in
      fun () ->
-       let open Tag_dag in
-       let tag_dag = load base_path |> add_edge ~from ~to_ |> ok_exn in
-       save tag_dag base_path)
+       let tag_dag =
+         Tag_dag.(load base_path |> ok_exn |> add_edge ~from ~to_ |> ok_exn)
+       in
+       Tag_dag.save tag_dag base_path)
 ;;
 
 let remove_connection =
@@ -33,9 +34,8 @@ let remove_connection =
        flag "-to" (required Tag.arg_type) ~doc:"tag Tag to remove a connection to"
      in
      fun () ->
-       let open Tag_dag in
-       let tag_dag = load base_path |> remove_edge ~from ~to_ in
-       save tag_dag base_path)
+       let tag_dag = Tag_dag.(load base_path |> ok_exn |> remove_edge ~from ~to_) in
+       Tag_dag.save tag_dag base_path)
 ;;
 
 let search =
