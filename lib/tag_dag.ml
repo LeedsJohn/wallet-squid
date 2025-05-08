@@ -87,6 +87,19 @@ let remove_edge t ~from ~to_ =
     | Some s -> Set.remove s to_)
 ;;
 
+let print_dot t =
+  let nodes = Map.key_set t |> Set.map (module String) ~f:Tag.to_string in
+  let edges =
+    Map.to_alist t
+    |> List.map ~f:(fun (node, neighbors) ->
+      Tag.to_string node, Set.to_list neighbors |> List.map ~f:Tag.to_string)
+    |> List.map ~f:(fun (node, neighbors) ->
+      List.map neighbors ~f:(fun neighbor -> node, neighbor))
+    |> List.join
+  in
+  Dot_writer.print_dot ~nodes ~edges
+;;
+
 let%expect_test "adding edges" =
   let a, b, c = Tag.of_string_exn "a", Tag.of_string_exn "b", Tag.of_string_exn "c" in
   let tag_graph =

@@ -53,6 +53,18 @@ let search =
        |> Set.iter ~f:(fun { name; tags = _; content = _ } -> print_endline name))
 ;;
 
+let make_graphviz =
+  Command.basic
+    ~summary:
+      "Print graphviz DOT language representation of the tag\n\
+      \    relationship graph to standard out"
+    (let%map_open.Command base_path = Base_path.param in
+     fun () ->
+       let raw_note_content = Raw_note_content.load_all base_path in
+       let tag_dag = Tag_dag.load base_path raw_note_content |> ok_exn in
+       Tag_dag.print_dot tag_dag)
+;;
+
 let command =
   Command.group
     ~summary:"commands to interact with tags"
@@ -60,5 +72,6 @@ let command =
     ; "add-connection", add_connection
     ; "remove-connection", remove_connection
     ; "search", search
+    ; "make-graphviz", make_graphviz
     ]
 ;;
