@@ -25,6 +25,17 @@ let fzf =
          ())
 ;;
 
+let make_graphviz =
+  Command.basic
+    ~summary:
+      "Print graphviz DOT language representation of notes. Notes that share a tag are \
+       connected."
+    (let%map_open.Command tag_info = Tag_info.param in
+     fun () -> Tag_info.print_dot tag_info)
+;;
+
 let command =
-  Command.group ~summary:"Wallet Squid" [ "tag", Tag_commands.command; "fzf", fzf ]
+  Command.group
+    ~summary:"Wallet Squid"
+    [ "tag", Tag_commands.command; "fzf", fzf; "make-graphviz", make_graphviz ]
 ;;

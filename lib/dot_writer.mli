@@ -2,12 +2,20 @@ open! Core
 
 (** Bare minimum dot language printer. Example usage:
 
-    [make_dot ~nodes:(Set.of_list ["a", "b"]) ~edges:[("a", "b")]]
+    [print_directed_graph_dot ~nodes:(Set.of_list ["a", "b"]) ~edges:[("a", "b")]]
 
     Output:
     digraph G {
-        a;
-        b;
-        a -> b;
+        node0 [label="a"];
+        node1 [label="b"];
+        node0 -> node1;
     } *)
-val print_dot : nodes:Set.M(String).t -> edges:(string * string) list -> unit
+val print_directed_graph_dot
+  :  nodes:Set.M(String).t
+  -> edges:(string * string) list
+  -> unit
+
+val print_undirected_graph_dot
+  :  nodes:Set.M(String).t
+  -> edges:(string * string) list
+  -> unit

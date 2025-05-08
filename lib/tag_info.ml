@@ -33,6 +33,23 @@ let print_sorted_freq_list t =
 
 let find t tag = Map.find t tag |> Option.value ~default:(Set.empty (module Note))
 
+let print_dot (t : t) =
+  let note_name { Note.name; content = _; tags = _ } = name in
+  let nodes =
+    Map.data t |> Set.union_list (module Note) |> Set.map (module String) ~f:note_name
+  in
+  let edges =
+    Map.data t
+    |> List.map ~f:Set.to_list
+    |> List.map ~f:(List.map ~f:note_name)
+    |> List.map ~f:(fun tags -> List.cartesian_product tags tags)
+    |> List.join
+    |> List.map ~f:(fun (tag1, tag2) -> String.min tag1 tag2, String.max tag1 tag2)
+    |> List.filter ~f:(fun (tag1, tag2) -> String.( <> ) tag1 tag2)
+  in
+  Dot_writer.print_undirected_graph_dot ~nodes ~edges
+;;
+
 let param =
   let%map_open.Command notes = Note_set.param in
   make notes

@@ -12,4 +12,5 @@ val print_sorted_freq_list : t -> unit
 (** Get all notes that fall under the tag. *)
 val find : t -> Tag.t -> Set.M(Note).t
 
+val print_dot : t -> unit
 val param : t Command.Param.t
