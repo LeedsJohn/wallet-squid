@@ -9,4 +9,5 @@ type t =
 
 include Comparator.S with type t := t
 
-val make : name:string -> content:string -> Tag_dag.t -> t Or_error.t
+(** Errors if the note contains an invalid tag. *)
+val make : Raw_note_content.t -> Tag_dag.t -> t Or_error.t

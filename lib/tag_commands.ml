@@ -18,8 +18,10 @@ let add_connection =
        flag "-from" (required Tag.arg_type) ~doc:"tag Tag to add a connection from"
      and to_ = flag "-to" (required Tag.arg_type) ~doc:"tag Tag to add a connection to" in
      fun () ->
+       let raw_note_content = Raw_note_content.load_all base_path in
        let tag_dag =
-         Tag_dag.(load base_path |> ok_exn |> add_edge ~from ~to_ |> ok_exn)
+         Tag_dag.(
+           load base_path raw_note_content |> ok_exn |> add_edge ~from ~to_ |> ok_exn)
        in
        Tag_dag.save tag_dag base_path)
 ;;
@@ -34,7 +36,10 @@ let remove_connection =
        flag "-to" (required Tag.arg_type) ~doc:"tag Tag to remove a connection to"
      in
      fun () ->
-       let tag_dag = Tag_dag.(load base_path |> ok_exn |> remove_edge ~from ~to_) in
+       let raw_note_content = Raw_note_content.load_all base_path in
+       let tag_dag =
+         Tag_dag.(load base_path raw_note_content |> ok_exn |> remove_edge ~from ~to_)
+       in
        Tag_dag.save tag_dag base_path)
 ;;
 

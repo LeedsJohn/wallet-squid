@@ -29,47 +29,21 @@ let get_connected_tags ?(max_distance = Int.max_value) t tag =
 let get_path base_path = [%string "%{Base_path.to_filename base_path}/%{filename}"]
 let save t base_path = Sexp.save (get_path base_path) (sexp_of_t t)
 
-let used_tags base_path =
+let used_tags raw_note_content =
   let%bind.Or_error tags =
-    Base_path.get_note_filenames base_path
-    |> Set.to_list
-    |> List.map ~f:(fun fname ->
-      In_channel.read_lines fname
-      |> List.hd
-      |> Option.value ~default:""
-      |> String.split ~on:','
-      |> List.map ~f:String.strip
-      |> List.filter ~f:(fun s -> String.length s > 0)
-      |> List.map ~f:Tag.of_string
-      |> List.map
-           ~f:
-             (Or_error.tag_s
-                ~tag:
-                  [%message
-                    ""
-                      ~name:
-                        (String.chop_prefix_exn
-                           fname
-                           ~prefix:(Base_path.to_filename base_path ^ "/")
-                         |> String.chop_suffix_exn ~suffix:".md"
-                         : string)]))
-    |> List.join
-    |> Or_error.all
+    List.map raw_note_content ~f:Raw_note_content.direct_tags |> Or_error.all
   in
-  Ok (Set.of_list (module Tag) tags)
+  Ok (Set.union_list (module Tag) tags)
 ;;
 
-(* This scans through every file in the directory again when it really doesn't need to.
-   This might be something to fix in the future, but for the time being, I think that
-   it is fine. *)
-let load base_path =
+let load base_path raw_note_content =
   let path = get_path base_path in
   let t =
     match Sys_unix.is_file path with
     | `Yes -> Sexp.load_sexp path |> t_of_sexp
     | `No | `Unknown -> empty
   in
-  let%bind.Or_error tags = used_tags base_path in
+  let%bind.Or_error tags = used_tags raw_note_content in
   Set.fold tags ~init:t ~f:(fun t tag ->
     Map.update t tag ~f:(function
       | None -> Set.empty (module Tag)

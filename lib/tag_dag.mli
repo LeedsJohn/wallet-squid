@@ -13,7 +13,7 @@ val save : t -> Base_path.t -> unit
 
 (** Returns empty dag if the file does not exist. Errors if there are any invalid tags
  in the notes directory. *)
-val load : Base_path.t -> t Or_error.t
+val load : Base_path.t -> Raw_note_content.t list -> t Or_error.t
 
 (** Error if the edge creates a cycle. Does nothing if the edge already exists. *)
 val add_edge : t -> from:Tag.t -> to_:Tag.t -> t Or_error.t

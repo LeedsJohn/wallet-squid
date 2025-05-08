@@ -38,22 +38,27 @@ let param =
   make notes
 ;;
 
-let test_note_list =
-  [ ( "ocaml_notes"
+let raw_note_content =
+  [ ( "ocaml_notes.md"
     , {|ocaml, math
 
     this is some text for a note about ocaml and math|}
     )
-  ; "work/cool_thing", "ocaml, plans"
-  ; ( "random_note"
+  ; "work/cool_thing.md", "ocaml, plans"
+  ; ( "random_note.md"
     , {|
 
     note text for a note with no tags|}
     )
   ]
+  |> List.map ~f:(fun (filename, content) -> { Raw_note_content.filename; content })
 ;;
 
-let test_notes = Note_set.For_testing.make test_note_list Tag_dag.empty |> ok_exn
+let test_notes =
+  List.map raw_note_content ~f:(fun raw_note_content ->
+    Note.make raw_note_content Tag_dag.empty |> ok_exn)
+  |> Set.of_list (module Note)
+;;
 
 let%expect_test "make tag info" =
   print_s [%sexp (make test_notes : t)];
@@ -97,8 +102,11 @@ let%expect_test "search by tag" =
   let tag1, tag2 = Tag.of_string_exn "ocaml", Tag.of_string_exn "programming" in
   let tag_dag = Tag_dag.(add_edge empty ~from:tag1 ~to_:tag2 |> ok_exn) in
   let notes =
-    Note_set.For_testing.make (("python_notes", "programming") :: test_note_list) tag_dag
-    |> ok_exn
+    { Raw_note_content.filename = "python_notes.md"; content = "programming" }
+    :: raw_note_content
+    |> List.map ~f:(fun raw_note_content -> Note.make raw_note_content tag_dag)
+    |> List.map ~f:ok_exn
+    |> Set.of_list (module Note)
   in
   let t = make notes in
   print_s [%sexp (find t tag2 : Set.M(Note).t)];
