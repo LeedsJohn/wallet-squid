@@ -4,7 +4,7 @@ open! Wallet_squid
 let%expect_test "load notes" =
   let base_path = Base_path.of_string "./example_notes_for_testing" |> ok_exn in
   let raw_note_content = Raw_note_content.load_all base_path in
-  let good_notes = Note_set.make raw_note_content Tag_dag.empty in
+  let good_notes = Note_set.make raw_note_content ~tag_dag:Tag_dag.empty in
   print_s [%sexp (good_notes : Set.M(Note).t Or_error.t)];
   [%expect
     {|
@@ -25,7 +25,7 @@ let%expect_test "load notes" =
     |}];
   let base_path = Base_path.of_string "./invalid_tag_notes" |> ok_exn in
   let raw_note_content = Raw_note_content.load_all base_path in
-  let bad_notes = Note_set.make raw_note_content Tag_dag.empty in
+  let bad_notes = Note_set.make raw_note_content ~tag_dag:Tag_dag.empty in
   print_s [%sexp (bad_notes : Set.M(Note).t Or_error.t)];
   [%expect
     {|
