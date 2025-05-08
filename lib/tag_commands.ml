@@ -58,11 +58,8 @@ let make_graphviz =
     ~summary:
       "Print graphviz DOT language representation of the tag\n\
       \    relationship graph to standard out"
-    (let%map_open.Command base_path = Base_path.param in
-     fun () ->
-       let raw_note_content = Raw_note_content.load_all base_path in
-       let tag_dag = Tag_dag.load base_path raw_note_content |> ok_exn in
-       Tag_dag.print_dot tag_dag)
+    (let%map_open.Command tag_dag = Tag_dag.param in
+     fun () -> Tag_dag.print_dot tag_dag)
 ;;
 
 let command =
