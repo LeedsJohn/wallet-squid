@@ -24,3 +24,5 @@ val remove_edge : t -> from:Tag.t -> to_:Tag.t -> t
 (** Prints graphviz DOT language representing the dag.
     See https://graphviz.org/doc/info/lang.html *)
 val print_dot : t -> unit
+
+val param : t Command.Param.t

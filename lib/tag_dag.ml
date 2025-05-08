@@ -100,6 +100,12 @@ let print_dot t =
   Dot_writer.print_dot ~nodes ~edges
 ;;
 
+let param =
+  let%map_open.Command base_path = Base_path.param in
+  let raw_note_content = Raw_note_content.load_all base_path in
+  load base_path raw_note_content |> ok_exn
+;;
+
 let%expect_test "adding edges" =
   let a, b, c = Tag.of_string_exn "a", Tag.of_string_exn "b", Tag.of_string_exn "c" in
   let tag_graph =
