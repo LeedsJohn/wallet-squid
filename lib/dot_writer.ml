@@ -1,6 +1,6 @@
 open! Core
 
-let make_dot ~nodes ~edges =
+let print_dot ~nodes ~edges =
   let nodes = Set.to_list nodes |> List.sort ~compare:String.compare in
   let edges =
     List.dedup_and_sort edges ~compare:(fun (s11, s12) (s21, s22) ->
@@ -16,7 +16,7 @@ let make_dot ~nodes ~edges =
 let%expect_test "simple dot" =
   let nodes = Set.of_list (module String) [ "a"; "b"; "c"; "d" ] in
   let edges = [ "a", "b"; "a", "c"; "c", "d"; "c", "d" ] in
-  make_dot ~nodes ~edges;
+  print_dot ~nodes ~edges;
   [%expect
     {|
     digraph G {

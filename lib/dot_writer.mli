@@ -10,4 +10,4 @@ open! Core
         b;
         a -> b;
     } *)
-val make_dot : nodes:Set.M(String).t -> edges:(string * string) list -> unit
+val print_dot : nodes:Set.M(String).t -> edges:(string * string) list -> unit
