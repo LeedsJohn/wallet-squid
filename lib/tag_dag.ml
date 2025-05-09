@@ -97,7 +97,7 @@ let print_dot t =
       List.map neighbors ~f:(fun neighbor -> node, neighbor))
     |> List.join
   in
-  Dot_writer.print_undirected_graph_dot ~nodes ~edges
+  Dot_writer.print_directed_graph_dot ~nodes ~edges
 ;;
 
 let param =
