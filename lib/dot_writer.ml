@@ -29,9 +29,9 @@ let print_graph ~graph_type ~arrow_string ~nodes ~edges =
   let edges = process_edges edges name_to_node in
   print_endline [%string "%{graph_type} G {"];
   Map.iteri name_to_node ~f:(fun ~key:name ~data:node ->
-    print_endline [%string {|%{node} [label="%{name}"];|}]);
+    print_endline [%string {|%{"\t"}%{node} [label="%{name}"];|}]);
   List.iter edges ~f:(fun (from, to_) ->
-    print_endline [%string "%{from} %{arrow_string} %{to_};"]);
+    print_endline [%string "\t%{from} %{arrow_string} %{to_};"]);
   print_endline "}"
 ;;
 
