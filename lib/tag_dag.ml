@@ -36,6 +36,15 @@ let used_tags raw_note_content =
   Ok (Set.union_list (module Tag) tags)
 ;;
 
+let add_unconnected_tags t raw_note_content =
+  let%bind.Or_error tags = used_tags raw_note_content in
+  Set.fold tags ~init:t ~f:(fun t tag ->
+    Map.update t tag ~f:(function
+      | None -> Set.empty (module Tag)
+      | Some neighbors -> neighbors))
+  |> Ok
+;;
+
 let load base_path raw_note_content =
   let path = get_path base_path in
   let t =
@@ -43,12 +52,7 @@ let load base_path raw_note_content =
     | `Yes -> Sexp.load_sexp path |> t_of_sexp
     | `No | `Unknown -> empty
   in
-  let%bind.Or_error tags = used_tags raw_note_content in
-  Set.fold tags ~init:t ~f:(fun t tag ->
-    Map.update t tag ~f:(function
-      | None -> Set.empty (module Tag)
-      | Some neighbors -> neighbors))
-  |> Ok
+  add_unconnected_tags t raw_note_content
 ;;
 
 let find_cycle_starting_from_edge t ~from ~to_ =
@@ -153,4 +157,17 @@ let%expect_test "get connected tags + removing" =
   let tag_graph = remove_edge tag_graph ~from:a ~to_:b in
   print_s [%sexp (get_connected_tags tag_graph a : int Map.M(Tag).t)];
   [%expect {| ((a 0) (d 1)) |}]
+;;
+
+let%expect_test "add unconnected tags" =
+  let a, b, c = Tag.of_string_exn "a", Tag.of_string_exn "b", Tag.of_string_exn "c" in
+  let tag_graph =
+    add_edge empty ~from:a ~to_:b |> ok_exn |> add_edge ~from:b ~to_:c |> ok_exn
+  in
+  let raw_note_content =
+    [ { Raw_note_content.filename = "note1.md"; content = "a, d" } ]
+  in
+  let t = add_unconnected_tags tag_graph raw_note_content |> ok_exn in
+  print_s [%sexp (t : t)];
+  [%expect {| ((a (b)) (b (c)) (d ())) |}]
 ;;
